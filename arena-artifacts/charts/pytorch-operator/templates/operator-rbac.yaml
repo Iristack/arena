@@ -16,6 +16,19 @@ metadata:
     {{- include "arena.labels" . | nindent 4 }}
   name: pytorch-operator
 rules:
+  {{- if or .Values.gangScheduling.enabled .Values.gangScheduling.podGroupRBAC }}
+  # Both API groups are read during adoption of pre-upgrade jobs.
+  - apiGroups:
+      - scheduling.incubator.k8s.io
+      - scheduling.volcano.sh
+    resources:
+      - podgroups
+    verbs:
+      - get
+      - create
+      - update
+      - delete
+  {{- end }}
   - apiGroups:
       - kubeflow.org
     resources:
