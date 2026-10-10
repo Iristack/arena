@@ -1,3 +1,14 @@
+{{- if .Values.gangScheduling.enabled }}
+{{- if not (has .Values.gangScheduling.podGroupBackend (list "legacy" "volcano")) }}
+{{- fail "pytorch.gangScheduling.podGroupBackend must be legacy or volcano" }}
+{{- end }}
+{{- if not .Values.gangScheduling.schedulerName }}
+{{- fail "pytorch.gangScheduling.schedulerName must not be empty" }}
+{{- end }}
+{{- if not .Values.imageOverride }}
+{{- fail "pytorch.imageOverride must reference a patched Operator supporting --podgroup-backend" }}
+{{- end }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -39,8 +50,16 @@ spec:
             - --monitoring-port=8443
             - --threadiness=4
             - --init-container-image={{ .Values.initContainerImage }}
-          # image: gcr.io/kubeflow-images-public/pytorch-operator:v0.6.0-18-g5e36a57
+            {{- if .Values.gangScheduling.enabled }}
+            - --enable-gang-scheduling=true
+            - {{ printf "--podgroup-backend=%s" .Values.gangScheduling.podGroupBackend | quote }}
+            - {{ printf "--gang-scheduler-name=%s" .Values.gangScheduling.schedulerName | quote }}
+            {{- end }}
+          {{- if .Values.imageOverride }}
+          image: {{ .Values.imageOverride | quote }}
+          {{- else }}
           image: {{ include "arena.imagePrefix" . }}/{{ .Values.image }}:{{ .Values.tag }}
+          {{- end }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           name: pytorch-operator
           resources:

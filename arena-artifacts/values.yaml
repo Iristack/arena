@@ -89,6 +89,14 @@ mpi:
 # pytorch-operator
 pytorch:
   enabled: true
+  # Full image reference for a patched Operator, independent of global.imagePrefix.
+  imageOverride: ""
+  gangScheduling:
+    enabled: false
+    podGroupBackend: legacy
+    schedulerName: volcano
+    # Keep true when disabling gang for NEW jobs while pinned jobs still exist.
+    podGroupRBAC: false
   image: acs/pytorch-operator
   tag: 2845db5-aliyun
   imagePullPolicy: IfNotPresent
